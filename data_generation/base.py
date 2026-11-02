@@ -12,7 +12,7 @@ class Data:
     design="grid":   coords has one uniform axis per coordinate, U has shape (c, *axis lengths).
     design="random": coords has n values per coordinate, U has shape (c, n), and the z_i are
                      uniform on domain = ((lo, hi), ...).
-    u_star holds the noiseless values u_*(z_i) when they are known.
+    u_star holds the noiseless values u_*(z_i) and sigma the noise sd per component, when they are known.
     """
 
     coords: tuple
@@ -20,6 +20,7 @@ class Data:
     design: str = "grid"
     domain: tuple | None = None
     u_star: np.ndarray | None = None
+    sigma: np.ndarray | None = None
 
     def __post_init__(self):
         if self.design == "grid":
@@ -46,10 +47,9 @@ class Data:
 
     def add_noise(self, rho, seed=None, rms=None):
         # U_i = u_*(z_i) + eps_i with sd(eps_c) = rho * RMS(u_*c); RMS over these z_i by default
-        rms = self.rms if rms is None else rms
-        sigma = rho*np.reshape(rms, (-1,) + (1,)*(self.u_star.ndim - 1))
+        sigma = rho*np.asarray(self.rms if rms is None else rms)
         noise = np.random.default_rng(seed).standard_normal(self.u_star.shape)
-        return replace(self, U=self.u_star + sigma*noise)
+        return replace(self, U=self.u_star + sigma.reshape((-1,) + (1,)*(self.u_star.ndim - 1))*noise, sigma=sigma)
 
     def split(self):
         # (pilot, regression): odd/even time slices on a grid, second/first half of random points

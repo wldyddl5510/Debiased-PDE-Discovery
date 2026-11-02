@@ -35,6 +35,9 @@ class WSINDy:
         self.support = support
         self.lambdas = np.sort(lambdas)
 
+    def estimate(self, wf, equation):
+        return self.fit(*wf.system(equation))
+
     def fit(self, X, Y):
         beta_ls = _ls(X, Y)
         if self.support == "fixed":

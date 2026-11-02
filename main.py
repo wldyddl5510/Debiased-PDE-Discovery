@@ -14,7 +14,7 @@ def run(pde, sampling, size, rho, iterations, estimator, dictionary, test_functi
     for seed in range(iterations):
         wf = WeakForm(getattr(pde, sampling)(size, rho, seed), test_functions)
         for q, equation in enumerate(dictionary):
-            betas[q].append(estimator.fit(*wf.system(equation)))
+            betas[q].append(estimator.estimate(wf, equation))
     return [np.array(b) for b in betas]
 
 

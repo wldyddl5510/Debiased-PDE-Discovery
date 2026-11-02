@@ -1,2 +1,3 @@
-from .dictionary import Equation, Term
+from .dictionary import Equation, Term, library
+from .spectral import spectral_test_functions
 from .weak_form import TestFunctions, WeakForm
