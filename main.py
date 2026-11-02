@@ -8,11 +8,17 @@ from experiments import EXPERIMENTS
 from weak_form import WeakForm
 
 
-def run(pde, sampling, size, rho, iterations, estimator, dictionary, test_functions):
+def run(pde, sampling, size, rho, iterations, estimator, dictionary, test_functions, pilot=None, m=None, use_original_data=False):
     # beta-hat per equation, each of shape (iterations, P)
     betas = [[] for _ in dictionary]
     for seed in range(iterations):
-        wf = WeakForm(getattr(pde, sampling)(size, rho, seed), test_functions)
+        data = getattr(pde, sampling)(size, rho, seed)
+        if pilot is None:
+            wf = WeakForm(data, test_functions)
+        else:
+            # Split first, so that u-hat comes from one half and beta-hat from the other; u-hat then replaces U
+            pilot_data, data = data.split()
+            wf = WeakForm(data, test_functions, pilot(pilot_data, seed=(seed, 1)), m, use_original_data, seed=(seed, 2))
         for q, equation in enumerate(dictionary):
             betas[q].append(estimator.estimate(wf, equation))
     return [np.array(b) for b in betas]

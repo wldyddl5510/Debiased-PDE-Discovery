@@ -26,8 +26,8 @@ def metrics(name):
 
 
 def log_axis(values):
-    # A log axis around every mean +- sd, with its ticks
-    bars = np.array([[v.mean(axis=1) + s*v.std(axis=1, ddof=1) for s in (-1, 1)] for family in values.values() for v in family.values()])
+    # A log axis around every mean and its 2.5% and 97.5% quantiles, with its ticks
+    bars = np.array([np.quantile(v, (.025, .975), axis=1) for family in values.values() for v in family.values()])
     means = np.array([v.mean(axis=1) for family in values.values() for v in family.values()])
     low, high = min(bars[bars > 0].min(), means.min())*.85, bars.max()*1.2
     ticks = [t for t in (.1, .2, .5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000) if low <= t <= high]
@@ -35,7 +35,7 @@ def log_axis(values):
 
 
 def plot(values, ylabel, path, yticks, ylim, log=False, reference=None):
-    # Mean +- sd per method against n, on a log n axis, one panel per family of test functions
+    # Mean with its 2.5% and 97.5% quantiles per method against n, on a log n axis, one panel per family of test functions
     plt.rcParams.update({"font.family": ["Helvetica Neue", "Arial", "DejaVu Sans"], "mathtext.fontset": "dejavusans"})
     fig, axes = plt.subplots(1, len(FAMILIES), figsize=(9.6, 3.9), dpi=200, facecolor=SURFACE, sharey=True)
     for ax, (family, title) in zip(axes, FAMILIES.items()):
@@ -46,7 +46,8 @@ def plot(values, ylabel, path, yticks, ylim, log=False, reference=None):
         # The x positions are moved slightly apart so that the error bars stay readable
         for (method, (label, color, marker)), shift in zip(METHODS.items(), (0.97, 1, 1.03)):
             v = values[family][method]
-            ax.errorbar(np.array(SIZES)*shift, v.mean(axis=1), v.std(axis=1, ddof=1), color=color, marker=marker,
+            mean, (lower, upper) = v.mean(axis=1), np.quantile(v, (.025, .975), axis=1)
+            ax.errorbar(np.array(SIZES)*shift, mean, (mean - lower, upper - mean), color=color, marker=marker,
                         ms=7, lw=1.5, elinewidth=1, capsize=2.5, mec=SURFACE, mew=1, label=label, zorder=3)
         if reference is not None:
             ax.hlines(reference, SIZES[0]*.85, SIZES[-1]*1.05, color=MUTED, lw=.8, zorder=2)
@@ -85,7 +86,7 @@ def table(values):
     rows = [f"| $n$ | Test functions | {' | '.join(head)} |", f"|---|---|{'---|'*len(head)}"]
     for i, n in enumerate(SIZES):
         for family, title in FAMILIES.items():
-            cells = [f"{v[i].mean():.2f} ± {v[i].std(ddof=1):.2f} ({np.median(v[i]):.2f})" for v in (values[family][m] for m in METHODS)]
+            cells = [f"{v.mean():.2f} ({np.quantile(v, .025):.2f}, {np.quantile(v, .975):.2f})" for v in (values[family][m][i] for m in METHODS)]
             rows.append(f"| {n} | {title} | {' | '.join(cells)} |")
     return "\n".join(rows)
 
@@ -185,21 +186,21 @@ LW's $R$ is an oracle value: the median of $\sqrt{{3}}\,\|D\beta_*\|_2$ over 20 
 
 ## 4. $L^2$ error
 
-$\|\hat\beta - \beta_*\|_2$ over all {2*P} coefficients of both equations. The reference line is the value at $\hat\beta = 0$, {zero:.2f}. The vertical axis is logarithmic, bars show ±1 sd across seeds, and points are shifted slightly horizontally to avoid overlap.
+$\|\hat\beta - \beta_*\|_2$ over all {2*P} coefficients of both equations. The reference line is the value at $\hat\beta = 0$, {zero:.2f}. The vertical axis is logarithmic, points show the mean and bars span the 2.5% to 97.5% quantiles across seeds, and points are shifted slightly horizontally to avoid overlap.
 
 ![L2 error](figures/l2_error.png)
 
-Mean ± sd (median) over {seeds} seeds:
+Mean (2.5% quantile, 97.5% quantile) over {seeds} seeds:
 
 {table(l2)}
 
 ## 5. F1 score
 
-With $\hat S = \{{\ell : \hat\beta_\ell \neq 0\}}$ and $S_* = \{{\ell : \beta_{{*\ell}} \neq 0\}}$, $F_1 = 2|\hat S \cap S_*|/(|\hat S| + |S_*|)$ over all {2*P} coefficients of both equations. Bars show ±1 sd across seeds, and points are shifted slightly horizontally to avoid overlap.
+With $\hat S = \{{\ell : \hat\beta_\ell \neq 0\}}$ and $S_* = \{{\ell : \beta_{{*\ell}} \neq 0\}}$, $F_1 = 2|\hat S \cap S_*|/(|\hat S| + |S_*|)$ over all {2*P} coefficients of both equations. Points show the mean and bars span the 2.5% to 97.5% quantiles across seeds, and points are shifted slightly horizontally to avoid overlap.
 
 ![F1 score](figures/f1_score.png)
 
-Mean ± sd (median) over {seeds} seeds:
+Mean (2.5% quantile, 97.5% quantile) over {seeds} seeds:
 
 {table(f1)}
 """, encoding="utf-8")

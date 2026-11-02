@@ -68,34 +68,34 @@ LW's $R$ is an oracle value: the median of $\sqrt{3}\,\|D\beta_*\|_2$ over 20 se
 
 ## 4. $L^2$ error
 
-$\|\hat\beta - \beta_*\|_2$ over all 380 coefficients of both equations. The reference line is the value at $\hat\beta = 0$, 2.12. The vertical axis is logarithmic, bars show ±1 sd across seeds, and points are shifted slightly horizontally to avoid overlap.
+$\|\hat\beta - \beta_*\|_2$ over all 380 coefficients of both equations. The reference line is the value at $\hat\beta = 0$, 2.12. The vertical axis is logarithmic, points show the mean and bars span the 2.5% to 97.5% quantiles across seeds, and points are shifted slightly horizontally to avoid overlap.
 
 ![L2 error](figures/l2_error.png)
 
-Mean ± sd (median) over 100 seeds:
+Mean (2.5% quantile, 97.5% quantile) over 100 seeds:
 
 | $n$ | Test functions | WSINDy | LW | CoCoLasso |
 |---|---|---|---|---|
-| 1000 | WSINDy paper | 19.22 ± 7.78 (17.48) | 1.97 ± 0.26 (1.93) | 1.97 ± 0.31 (1.91) |
-| 1000 | Proposed | 10.32 ± 4.66 (9.76) | 2.02 ± 0.32 (1.98) | 1.85 ± 0.30 (1.84) |
-| 5000 | WSINDy paper | 9.81 ± 2.71 (9.16) | 1.78 ± 0.26 (1.76) | 1.74 ± 0.28 (1.75) |
-| 5000 | Proposed | 6.49 ± 2.96 (6.18) | 1.62 ± 0.32 (1.61) | 1.44 ± 0.37 (1.41) |
-| 10000 | WSINDy paper | 7.50 ± 1.98 (7.23) | 1.54 ± 0.20 (1.57) | 1.44 ± 0.23 (1.45) |
-| 10000 | Proposed | 4.99 ± 2.70 (4.85) | 1.16 ± 0.30 (1.16) | 0.96 ± 0.25 (0.97) |
+| 1000 | WSINDy paper | 19.22 (7.71, 37.50) | 1.97 (1.58, 2.51) | 1.97 (1.55, 2.67) |
+| 1000 | Proposed | 10.32 (3.44, 21.52) | 2.02 (1.60, 2.62) | 1.85 (1.39, 2.75) |
+| 5000 | WSINDy paper | 9.81 (6.39, 15.96) | 1.78 (1.31, 2.25) | 1.74 (1.26, 2.40) |
+| 5000 | Proposed | 6.49 (1.90, 12.26) | 1.62 (0.99, 2.14) | 1.44 (0.94, 2.25) |
+| 10000 | WSINDy paper | 7.50 (4.06, 11.97) | 1.54 (1.13, 1.85) | 1.44 (1.04, 1.79) |
+| 10000 | Proposed | 4.99 (0.75, 10.57) | 1.16 (0.63, 1.70) | 0.96 (0.54, 1.49) |
 
 ## 5. F1 score
 
-With $\hat S = \{\ell : \hat\beta_\ell \neq 0\}$ and $S_* = \{\ell : \beta_{*\ell} \neq 0\}$, $F_1 = 2|\hat S \cap S_*|/(|\hat S| + |S_*|)$ over all 380 coefficients of both equations. Bars show ±1 sd across seeds, and points are shifted slightly horizontally to avoid overlap.
+With $\hat S = \{\ell : \hat\beta_\ell \neq 0\}$ and $S_* = \{\ell : \beta_{*\ell} \neq 0\}$, $F_1 = 2|\hat S \cap S_*|/(|\hat S| + |S_*|)$ over all 380 coefficients of both equations. Points show the mean and bars span the 2.5% to 97.5% quantiles across seeds, and points are shifted slightly horizontally to avoid overlap.
 
 ![F1 score](figures/f1_score.png)
 
-Mean ± sd (median) over 100 seeds:
+Mean (2.5% quantile, 97.5% quantile) over 100 seeds:
 
 | $n$ | Test functions | WSINDy | LW | CoCoLasso |
 |---|---|---|---|---|
-| 1000 | WSINDy paper | 0.11 ± 0.03 (0.11) | 0.37 ± 0.16 (0.40) | 0.38 ± 0.13 (0.40) |
-| 1000 | Proposed | 0.13 ± 0.08 (0.12) | 0.29 ± 0.16 (0.29) | 0.43 ± 0.17 (0.44) |
-| 5000 | WSINDy paper | 0.19 ± 0.04 (0.19) | 0.42 ± 0.12 (0.42) | 0.37 ± 0.12 (0.35) |
-| 5000 | Proposed | 0.31 ± 0.11 (0.29) | 0.44 ± 0.16 (0.44) | 0.48 ± 0.12 (0.50) |
-| 10000 | WSINDy paper | 0.24 ± 0.06 (0.24) | 0.42 ± 0.07 (0.42) | 0.40 ± 0.07 (0.40) |
-| 10000 | Proposed | 0.39 ± 0.19 (0.34) | 0.57 ± 0.10 (0.59) | 0.52 ± 0.08 (0.52) |
+| 1000 | WSINDy paper | 0.11 (0.06, 0.17) | 0.37 (0.00, 0.67) | 0.38 (0.15, 0.63) |
+| 1000 | Proposed | 0.13 (0.03, 0.31) | 0.29 (0.00, 0.50) | 0.43 (0.00, 0.70) |
+| 5000 | WSINDy paper | 0.19 (0.11, 0.26) | 0.42 (0.22, 0.67) | 0.37 (0.19, 0.67) |
+| 5000 | Proposed | 0.31 (0.14, 0.57) | 0.44 (0.14, 0.72) | 0.48 (0.27, 0.73) |
+| 10000 | WSINDy paper | 0.24 (0.16, 0.38) | 0.42 (0.28, 0.56) | 0.40 (0.25, 0.54) |
+| 10000 | Proposed | 0.39 (0.16, 0.91) | 0.57 (0.33, 0.71) | 0.52 (0.36, 0.67) |

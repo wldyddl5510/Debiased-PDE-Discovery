@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from itertools import combinations_with_replacement
 
 import numpy as np
@@ -22,11 +22,23 @@ class TestFunctions:
 
 
 class WeakForm:
-    """X_n(u) and Y_n(u) for one data set and one family of test functions, or a callable that builds it from the data."""
+    """X_n(u) and Y_n(u) for one data set and one family of test functions, or a callable that builds it from the data.
 
-    def __init__(self, data, test_functions):
-        self.data = data
+    By default u = U. A callable u(*z), such as a pilot u-hat, replaces U: at the data's z_i if use_original_data, and
+    otherwise at m new points drawn uniformly on the domain (m = n by default), a fresh Monte Carlo sample. The test
+    functions are built from the data in both cases.
+    """
+
+    def __init__(self, data, test_functions, u=None, m=None, use_original_data=False, seed=None):
         self.phi = test_functions(data) if callable(test_functions) else test_functions
+        if u is not None:
+            if not use_original_data:
+                rng = np.random.default_rng(seed)
+                z = tuple(rng.uniform(lo, hi, data.U[0].size if m is None else m) for lo, hi in data.domain)
+                data = replace(data, coords=z, design="random")
+            # u carries no observation noise: Sigma_W is 0 on a grid and the Monte Carlo covariance at random points
+            data = replace(data, U=u(*data.points), u_star=None, sigma=np.zeros(len(data.U)))
+        self.data = data
         self._bases = {}
 
     def integrate(self, F, order):
