@@ -1,0 +1,12 @@
+# Core (scripts: main.py, experiments.py, report.py, packages)
+numpy>=2.0
+matplotlib>=3.8
+
+# PyTorch (CUDA 13.2 build; needs driver >= that of SCC A100 nodes, not V100)
+--extra-index-url https://download.pytorch.org/whl/cu132
+torch
+torchvision
+
+# Notebook (single_instance.ipynb)
+pandas>=2.0
+ipykernel

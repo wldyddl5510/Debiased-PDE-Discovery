@@ -24,18 +24,28 @@ class TestFunctions:
 class WeakForm:
     """X_n(u) and Y_n(u) for one data set and one family of test functions, or a callable that builds it from the data.
 
-    By default u = U. A callable u(*z), such as a pilot u-hat, replaces U: at the data's z_i if use_original_data, and
-    otherwise at m new points drawn uniformly on the domain (m = n by default), a fresh Monte Carlo sample. The test
-    functions are built from the data in both cases.
+    By default u = U. A callable u(*z), such as a pilot u-hat, replaces the data by u at new points z'_j on the domain:
+    points="random": m points drawn uniformly (m = n by default), summed by Monte Carlo with weight |Omega|/m;
+    points="grid":   the grid of shape m (the data's grid by default), half-open in space and closed in time like
+                     PDE.grid, summed by the rectangle rule with the cell volume, as in WSINDy_PDE's convolutions.
+    The test functions are built from the observed data in both cases.
     """
 
-    def __init__(self, data, test_functions, u=None, m=None, use_original_data=False, seed=None):
+    def __init__(self, data, test_functions, u=None, points="random", m=None, seed=None):
         self.phi = test_functions(data) if callable(test_functions) else test_functions
         if u is not None:
-            if not use_original_data:
+            if points == "random":
                 rng = np.random.default_rng(seed)
                 z = tuple(rng.uniform(lo, hi, data.U[0].size if m is None else m) for lo, hi in data.domain)
                 data = replace(data, coords=z, design="random")
+            elif points == "grid":
+                if m is None and data.design != "grid":
+                    raise ValueError('points="grid" needs the grid shape m for a random design')
+                shape, last = data.U.shape[1:] if m is None else m, len(data.domain) - 1
+                axes = tuple(np.linspace(lo, hi, N, endpoint=a == last) for a, ((lo, hi), N) in enumerate(zip(data.domain, shape)))
+                data = replace(data, coords=axes, design="grid")
+            else:
+                raise ValueError('points must be "random" or "grid"')
             # u carries no observation noise: Sigma_W is 0 on a grid and the Monte Carlo covariance at random points
             data = replace(data, U=u(*data.points), u_star=None, sigma=np.zeros(len(data.U)))
         self.data = data

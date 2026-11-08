@@ -1,5 +1,4 @@
-"""Write results.md and figures/ from the saved results of the settings nls_random_n<n>_<method>[_wsindy_pde], and of
-nls_random_n1000_<method>[_wsindy_pde]_uhat."""
+"""Write results.md and figures/ from the saved results of the settings nls_random_n<n>_<method>[_wsindy_pde]."""
 from pathlib import Path
 
 import matplotlib
@@ -8,11 +7,9 @@ import numpy as np
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from experiments import EXPERIMENTS, NLS_LAMBDAS, NLS_LW_RADIUS, NLS_UHAT_RADIUS, NLS_WSINDY_PDE, NLS_WSINDY_PDE_RADIUS
+from experiments import EXPERIMENTS, NLS_LAMBDAS, NLS_LW_RADIUS, NLS_WSINDY_PDE, NLS_WSINDY_PDE_RADIUS
 
 SIZES = tuple(NLS_LW_RADIUS)
-# The n of the u-hat settings run so far
-PILOT_SIZE = 1000
 METHODS = {"mstls": ("WSINDy", "#2a78d6", "o"), "lw": ("LW", "#eb6834", "s"), "coco": ("CoCoLasso", "#1baf7a", "^")}
 FAMILIES = {"_wsindy_pde": "WSINDy paper", "": "Proposed"}
 INK, MUTED, GRID, AXIS, SURFACE = "#0b0b0b", "#52514e", "#e1e0d9", "#c3c2b7", "#fcfcfb"
@@ -97,18 +94,6 @@ def table(values):
     return "\n".join(rows)
 
 
-def pilot_table(index):
-    # L2 error (index 0) or F1 score (index 1) of each u-hat setting on the seeds it has, and of the full data on the same seeds
-    rows = [r"| Test functions | Method | Seeds | $U$, all $n$ points | $\hat u$, regression half |", "|---|---|---|---|---|"]
-    for family, title in FAMILIES.items():
-        for m in METHODS:
-            name = f"nls_random_n{PILOT_SIZE}_{m}{family}"
-            saved = np.load(Path("results")/f"{name}_uhat.npz")
-            seeds = saved["seeds"] if "seeds" in saved else np.arange(len(saved["beta_0"]))
-            rows.append(f"| {title} | {METHODS[m][0]} | {len(seeds)} | {summary(metrics(name)[index][seeds])} | {summary(metrics(name + '_uhat')[index])} |")
-    return "\n".join(rows)
-
-
 def proposed_table(settings):
     # The proposed test functions of every seed, as main.run builds them
     rows = ["| $n$ | $R_x$ | $R_t$ | $K$ |", "|---|---|---|---|"]
@@ -134,8 +119,6 @@ def main():
     wx, wt = NLS_WSINDY_PDE.centers
     (Rx, Rt), (qx, qt) = NLS_WSINDY_PDE.radii, NLS_WSINDY_PDE.degrees
     oracle = {family: ", ".join(f"{r[n]:g} ($n={n}$)" for n in SIZES) for family, r in (("wsindy", NLS_WSINDY_PDE_RADIUS), ("proposed", NLS_LW_RADIUS))}
-    n_reg, sigma = PILOT_SIZE//2, setting["pde"].rms*rho
-    pilot = EXPERIMENTS[f"nls_random_n{PILOT_SIZE}_mstls_uhat"]
 
     plot(l2, r"$L^2$ error  $\|\hat\beta - \beta_*\|_2$", "l2_error.png", *log_axis(l2), log=True, reference=zero)
     plot(f1, "F1 score", "f1_score.png", [0, .2, .4, .6, .8, 1], (0, 1.02))
@@ -223,30 +206,6 @@ With $\hat S = \lbrace\ell : \hat\beta_\ell \neq 0\rbrace$ and $S_\ast = \lbrace
 Mean (2.5% quantile, 97.5% quantile) over {seeds} seeds:
 
 {table(f1)}
-
-## 6. $U$ replaced by a pilot $\hat u$, $n = {PILOT_SIZE}$
-
-Each seed's {PILOT_SIZE} points are split in half. The pilot half is taken to have produced $\hat u$, and the estimators see only the other half, the regression half of $n_{{\rm reg}} = {n_reg}$ points, with $\hat u(z_i)$ in place of $U_i$ at its own $z_i$:
-
-$$\hat u_c = u_{{*c}} + \zeta\thinspace n_{{\rm reg}}^{{-1/3}} g_c, \qquad g_c(x, t) = \sum_{{k, l = 0}}^{{8}} a_{{ckl}} \cos\frac{{\pi k (x + 5)}}{{L_x}} \cos\frac{{\pi l t}}{{L_t}},$$
-
-with $\zeta = 1$ and $a_{{ckl}} \sim N(0, 1)$, drawn afresh for each seed and scaled so that $g_c$ has RMS 1 over the domain. The pilot error therefore has RMS ${n_reg}^{{-1/3}} = {n_reg**(-1/3):.3f}$ in each component, against the noise standard deviation $\sigma = ({sigma[0]:.3f}, {sigma[1]:.3f})$ of $U$. Unlike the noise, it is smooth, so the test functions do not average it out.
-
-$X_n$, $Y_n$ and $\widehat\Sigma_W$ are computed from $\hat u$, so $\widehat\Sigma_W$ covers only the Monte Carlo variation over the $z_i$. The paper's test functions are unchanged, and the proposed ones are built from the regression half's $U$. LW's $R$ follows the oracle rule of Section 3 on the regression half with $\hat u$: {NLS_UHAT_RADIUS['_wsindy_pde'][PILOT_SIZE]:g} for the paper's test functions and {NLS_UHAT_RADIUS[''][PILOT_SIZE]:g} for the proposed ones.
-
-The run was stopped after a fixed time, so each setting has only the seeds that finished. The column $U$ repeats Sections 4 and 5 on the same seeds. `python main.py nls_random_n{PILOT_SIZE}_<method>[_wsindy_pde]_uhat` runs all {pilot['iterations']} seeds of a setting.
-
-### 6.1 $L^2$ error
-
-Mean (2.5% quantile, 97.5% quantile) over the seeds:
-
-{pilot_table(0)}
-
-### 6.2 F1 score
-
-Mean (2.5% quantile, 97.5% quantile) over the seeds:
-
-{pilot_table(1)}
 """, encoding="utf-8")
     print("wrote results.md")
 
