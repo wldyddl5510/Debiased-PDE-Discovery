@@ -1,2 +1,6 @@
 __pycache__/
 results/
+*.log
+nohup.out
+.ipynb_checkpoints/
+.DS_Store

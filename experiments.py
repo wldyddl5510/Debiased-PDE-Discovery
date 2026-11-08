@@ -43,6 +43,9 @@ NLS_WSINDY_PDE = TestFunctions((-5 + R_WSINDY_PDE[0] + np.arange(44)*5*10/256, R
 NLS_WSINDY_PDE_RADIUS = {1000: 0.79, 5000: 0.47, 10000: 0.43}
 # u-hat = u_* + zeta n^(-1/3) g with zeta = 1, n the size of the pilot half and g a random cosine series of unit RMS
 NLS_PILOT = partial(perturbed_truth, pde=Schrodinger(a=0.5, b=1.0))
+# The oracle radius above, recomputed on the regression half with U replaced by u-hat, per test-function family
+NLS_UHAT_RADIUS = {"": {1000: 2.23, 5000: 1.23, 10000: 1.04}, "_wsindy_pde": {1000: 1.08, 5000: 0.58, 10000: 0.47}}
+NLS_FAMILIES = {"": partial(spectral_test_functions, equations=NLS_FULL), "_wsindy_pde": NLS_WSINDY_PDE}
 NLS_ESTIMATORS = {
     "mstls": lambda radius: WSINDy("mstls"),
     "lw": lambda radius: LohWainwright(NLS_LAMBDAS, radius, standardize=True),
@@ -80,13 +83,18 @@ EXPERIMENTS = {
         )
         for n in NLS_WSINDY_PDE_RADIUS for name, estimator in NLS_ESTIMATORS.items()
     },
-    # WSINDy with U replaced by the pilot u-hat from the other half: at 500 new points, or at the half's own z_i
+    # The regression half of each seed's data, with U replaced by u-hat at the half's own z_i
     **{
-        f"nls_random_n1000_mstls_pilot{suffix}": dict(
-            pde=Schrodinger(a=0.5, b=1.0), sampling="random", size=1000, rho=0.1, iterations=100,
-            estimator=WSINDy("mstls"), dictionary=NLS_FULL, test_functions=NLS_WSINDY_PDE,
-            pilot=NLS_PILOT, use_original_data=original,
+        f"nls_random_n{n}_{name}{family}_uhat": dict(
+            pde=Schrodinger(a=0.5, b=1.0), sampling="random", size=n, rho=0.1, iterations=10,
+            estimator=estimator(radius[n]), dictionary=NLS_FULL, test_functions=NLS_FAMILIES[family],
+            pilot=NLS_PILOT, use_original_data=True,
         )
-        for suffix, original in (("", False), ("_original", True))
+        for family, radius in NLS_UHAT_RADIUS.items() for n in radius for name, estimator in NLS_ESTIMATORS.items()
     },
+    # U replaced by u-hat at 500 new uniform points instead of the half's z_i: data augmentation
+    "nls_random_n1000_mstls_wsindy_pde_uhat_new": dict(
+        pde=Schrodinger(a=0.5, b=1.0), sampling="random", size=1000, rho=0.1, iterations=100,
+        estimator=WSINDy("mstls"), dictionary=NLS_FULL, test_functions=NLS_WSINDY_PDE, pilot=NLS_PILOT,
+    ),
 }
