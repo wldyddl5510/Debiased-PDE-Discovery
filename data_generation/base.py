@@ -79,6 +79,12 @@ class PDE(ABC):
     def solution(self, *z):
         """u_*(z), shape (c, *z[0].shape)."""
 
+    def coefficients(self, equation):
+        # beta_* on the columns of equation, from the true equation with the same left-hand side; 0 for the other terms
+        true = next(q for q, eq in enumerate(self.equations) if eq.lhs == equation.lhs)
+        known = dict(zip(self.equations[true].rhs, self.beta_star[true]))
+        return np.array([known.get(term, 0.) for term in equation.rhs])
+
     @cached_property
     def rms(self):
         # On a fixed grid, so that sigma_c is the same across draws and designs

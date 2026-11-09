@@ -3,3 +3,4 @@
 main.run passes all n observations here; WeakForm then evaluates u-hat at m new points (random or grid).
 """
 from .perturbed_truth import perturbed_truth
+from .pinn import PINN

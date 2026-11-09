@@ -24,6 +24,11 @@ class Term:
     def __call__(self, u):
         return np.prod([u[c]**p for c, p in enumerate(self.powers)], axis=0)
 
+    def gradient(self, u):
+        # d/du_c of the monomial for each component c, shape (c, *u[0].shape): p_c u_c^(p_c - 1) prod_{b != c} u_b^p_b
+        lower = lambda c: Term(tuple(p - (b == c) for b, p in enumerate(self.powers)), self.derivative)
+        return np.stack([p*lower(c)(u) if p else np.zeros_like(u[c]) for c, p in enumerate(self.powers)])
+
     def covariance(self, other, u, s2):
         # Cov(f(u + eps), g(u + eps)) pointwise, for independent eps_c ~ N(0, s2_c)
         joint, means = 1., 1.

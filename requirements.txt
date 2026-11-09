@@ -1,6 +1,9 @@
 # Core (scripts: main.py, experiments.py, report.py, packages)
 numpy>=2.0
 matplotlib>=3.8
+scikit-learn>=1.3
+# Best subset selection (estimators/best_subset.py); needs a Gurobi license, free for academic use
+gurobipy>=11
 
 # PyTorch (CUDA 13.2 build; needs driver >= that of SCC A100 nodes, not V100)
 --extra-index-url https://download.pytorch.org/whl/cu132
